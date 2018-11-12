@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form action='/api' method="post" id="chat_settings">
+
+    <p> Chat settings id <label>
+        <input type="number" name="id" value="{{ chatSettings.get('id') }}"/>
+    </label></p>
+
+    <p> Chat id <label>
+        <input type="number" name="chatId" value="{{ chatSettings.get('chatId') }}"/>
+    </label></p>
+
+    <p> Chat settings information <label>
+        <input type="text" name="chatSettingsInformation" value="{{ chatSettings.get('chatSettingsInformation') }}"/>
+    </label></p>
+
+
+    <p> Chat id <label>
+        <input type="number" name="chatSettingsAdministratorId"
+               value="{{ chatSettings.get('chatSettingsAdministratorId') }}"/>
+    </label></p>
+
+
+</form>
+<button type="submit" form="chat_settings" name="action" value="chat_settings_update">Submit</button>
+</body>
+</html>

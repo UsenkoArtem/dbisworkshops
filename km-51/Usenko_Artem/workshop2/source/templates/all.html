@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All users</title>
+</head>
+<body>
+
+<h3>Message</h3>
+<table>
+    {% for key, val in message.items() %}
+        <tr>
+            <td> {{ key }}</td>
+            <td> {{ val }}</td>
+        </tr>
+    {% endfor %}
+</table>
+<h3>Chat settings</h3>
+<table>
+    {% for key, val in chatSettings.items() %}
+        <tr>
+            <td> {{ key }}</td>
+            <td> {{ val }}</td>
+        </tr>
+    {% endfor %}
+</table>
+</body>
+</html>

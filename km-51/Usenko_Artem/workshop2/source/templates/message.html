@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form action='/api' method="post" id="message">
+
+    <p> Message id<label>
+        <input type="number" name="id" value="{{ message.get('id') }}"/>
+    </label></p>
+
+    <p> Chat id <label>
+        <input type="number" name="chatId" value="{{ message.get('chatId') }}"/>
+    </label></p>
+
+    <p> Message text <label>
+        <input type="text" name="messageText" value="{{ message.get('messageText') }}"/>
+    </label></p>
+
+
+    <p> Message date <label>
+        <input type="text" name="message_date"
+               value="{{ message.get('message_date') }}"/>
+    </label></p>
+
+     <p> Message owner id <label>
+        <input type="text" name="messageOwner"
+               value="{{ message.get('messageOwner') }}"/>
+    </label></p>
+
+
+</form>
+<button type="submit" form="message" name="action" value="message_update">Submit</button>
+</body>
+</html>
