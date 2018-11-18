@@ -1,117 +1,40 @@
-
-Insert INTO chat(chat_id,chat_name) VALUES (Chat_seq.nextval, 'Chat1');
-Insert INTO chat(chat_id,chat_name) VALUES (Chat_seq.nextval, 'Chat2');
-Insert INTO chat(chat_id,chat_name) VALUES (Chat_seq.nextval, 'Chat3');
-Insert INTO chat(chat_id,chat_name) VALUES (Chat_seq.nextval, 'Chat4');
-Insert INTO chat(chat_id,chat_name) VALUES (Chat_seq.nextval, 'Chat5');
+INSERT INTO "COURSE_4"."CHAT" (CHAT_ID, CHAT_NAME) VALUES ('1', 'test');
+INSERT INTO "COURSE_4"."CHAT" (CHAT_ID, CHAT_NAME) VALUES ('2', 'test1');
+INSERT INTO "COURSE_4"."CHAT" (CHAT_ID, CHAT_NAME) VALUES ('3', 'test2');
+INSERT INTO "COURSE_4"."CHAT" (CHAT_ID, CHAT_NAME) VALUES ('4', 'test3');
 
 
-
-Insert Into ChatSettings(chat_settings_id, chat_id, chat_settings_information, chat_settings_administrator_id)
-VALUES(ChatSettings_seq.nextval,
-       (Select Chat.chat_id from Chat  where Chat.chat_name = 'Chat1'),
-       (''),
-       (Select "User".user_id from "User" where "User".USER_EMAIL = 'usenko@gmail.com'));
-
-Insert Into ChatSettings(chat_settings_id, chat_id, chat_settings_information, chat_settings_administrator_id)
-VALUES(ChatSettings_seq.nextval,
-       (Select Chat.chat_id from Chat  where Chat.chat_name = 'Chat2'),
-       (''),
-       (Select "User".user_id from "User" where "User".USER_EMAIL = 'usenko2@gmail.com'));
-
-Insert Into ChatSettings(chat_settings_id, chat_id, chat_settings_information, chat_settings_administrator_id)
-VALUES(ChatSettings_seq.nextval,
-       (Select Chat.chat_id from Chat  where Chat.chat_name = 'Chat3'),
-       (''),
-       (Select "User".user_id from "User" where "User".USER_EMAIL = 'usenko@gmail.com'));
-
-Insert Into ChatSettings(chat_settings_id, chat_id, chat_settings_information, chat_settings_administrator_id)
-VALUES(ChatSettings_seq.nextval,
-       (Select Chat.chat_id from Chat  where Chat.chat_name = 'Chat4'),
-       (''),
-       (Select "User".user_id from "User" where "User".USER_EMAIL = 'usenko1@gmail.com'));
+INSERT INTO "COURSE_4"."User" (USER_ID, USER_FIRST_NAME, USER_SECOND_NAME, USER_PASSWORD, USER_EMAIL) VALUES ('1', 'Artem', 'Usenko', 'art', 'usenko@gmail.com');
+INSERT INTO "COURSE_4"."User" (USER_ID, USER_FIRST_NAME, USER_SECOND_NAME, USER_PASSWORD, USER_EMAIL) VALUES ('2', 'Artem', 'Usenko', 'art1', 'usenko_1@gmail.com');
+INSERT INTO "COURSE_4"."User" (USER_ID, USER_FIRST_NAME, USER_SECOND_NAME, USER_PASSWORD, USER_EMAIL) VALUES ('3', 'Artem', 'Usenko', 'art2', 'usenko_2@gmail.com');
+INSERT INTO "COURSE_4"."User" (USER_ID, USER_FIRST_NAME, USER_SECOND_NAME, USER_PASSWORD, USER_EMAIL) VALUES ('4', 'Artem', 'Usenko', 'art3', 'usenko_3@gmail.com');
 
 
+INSERT INTO "COURSE_4"."MESSAGE" (MESSAGE_ID, MESSAGE_TEXT, MESSAGE_DATE, CHAT_ID, USER_ID) VALUES ('1', 'hello', TO_DATE('2018-11-17 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), '1', '1');
+INSERT INTO "COURSE_4"."MESSAGE" (MESSAGE_ID, MESSAGE_TEXT, MESSAGE_DATE, CHAT_ID, USER_ID) VALUES ('2', 'hello user', TO_DATE('2018-11-17 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), '2', '2');
+INSERT INTO "COURSE_4"."MESSAGE" (MESSAGE_ID, MESSAGE_TEXT, MESSAGE_DATE, CHAT_ID, USER_ID) VALUES ('3', 'art', TO_DATE('2018-11-17 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), '3', '3');
+INSERT INTO "COURSE_4"."MESSAGE" (MESSAGE_ID, MESSAGE_TEXT, MESSAGE_DATE, CHAT_ID, USER_ID) VALUES ('4', 'hello users', TO_DATE('2018-11-17 00:00:00', 'YYYY-MM-DD HH24:MI:SS'), '4', '4');
 
-Insert Into Message(message_id, chat_id, message_text, message_date, message_owner)
-VALUES(Message_seq.nextval,
-       (Select Chat.chat_id from Chat  where Chat.chat_name = 'Chat1'),
-       ('Lab4'),
-       (SELECT SYSTIMESTAMP FROM dual),
-       (Select "User".user_id from "User" where "User".USER_EMAIL = 'usenko1@gmail.com'));
+INSERT INTO "COURSE_4"."CHATSETTINGS" (CHAT_ID, CHAT_SETTINGS_INFORMATION, CHAT_SETTINGS_ADMINISTRATOR_ID, CHAT_SETTINGS_ID) VALUES ('1', 'all notification', '1', '1');
+INSERT INTO "COURSE_4"."CHATSETTINGS" (CHAT_ID, CHAT_SETTINGS_INFORMATION, CHAT_SETTINGS_ADMINISTRATOR_ID, CHAT_SETTINGS_ID) VALUES ('2', 'all notification', '2', '2');
+INSERT INTO "COURSE_4"."CHATSETTINGS" (CHAT_ID, CHAT_SETTINGS_INFORMATION, CHAT_SETTINGS_ADMINISTRATOR_ID, CHAT_SETTINGS_ID) VALUES ('3', 'all notification', '3', '3');
+INSERT INTO "COURSE_4"."CHATSETTINGS" (CHAT_ID, CHAT_SETTINGS_INFORMATION, CHAT_SETTINGS_ADMINISTRATOR_ID, CHAT_SETTINGS_ID) VALUES ('4', 'all notification', '4', '4');
 
-Insert Into Message(message_id, chat_id, message_text, message_date, message_owner)
-VALUES(Message_seq.nextval,
-       (Select Chat.chat_id from Chat  where Chat.chat_name = 'Chat2'),
-       'Lab5',
-       (SELECT SYSTIMESTAMP FROM dual),
-       (Select "User".user_id from "User" where "User".USER_EMAIL = 'usenko1@gmail.com'));
+INSERT INTO "COURSE_4"."USER_CHAT_ADMIN" (CHAT_ID, USER_ID) VALUES ('1', '1');
+INSERT INTO "COURSE_4"."USER_CHAT_ADMIN" (CHAT_ID, USER_ID) VALUES ('2', '2');
+INSERT INTO "COURSE_4"."USER_CHAT_ADMIN" (CHAT_ID, USER_ID) VALUES ('3', '3');
+INSERT INTO "COURSE_4"."USER_CHAT_ADMIN" (CHAT_ID, USER_ID) VALUES ('4', '4');
 
-Insert Into Message(message_id, chat_id, message_text, message_date, message_owner)
-VALUES(Message_seq.nextval,
-       (Select Chat.chat_id from Chat  where Chat.chat_name = 'Chat3'),
-       'Lab5',
-       (SELECT SYSTIMESTAMP FROM dual),
-       (Select "User".user_id from "User" where "User".USER_EMAIL = 'usenko1@gmail.com'));
-
-Insert Into Message(message_id, chat_id, message_text, message_date, message_owner)
-VALUES(Message_seq.nextval,
-       (Select Chat.chat_id from Chat  where Chat.chat_name = 'Chat4'),
-       'Lab4',
-       (SELECT SYSTIMESTAMP FROM dual),
-       (Select "User".user_id from "User" where "User".USER_EMAIL = 'usenko2@gmail.com'));
+INSERT INTO "COURSE_4"."USER_HAVE_CHAT" (CHAT_ID, USER_ID) VALUES ('1', '2');
+INSERT INTO "COURSE_4"."USER_HAVE_CHAT" (CHAT_ID, USER_ID) VALUES ('1', '1');
+INSERT INTO "COURSE_4"."USER_HAVE_CHAT" (CHAT_ID, USER_ID) VALUES ('1', '3');
+INSERT INTO "COURSE_4"."USER_HAVE_CHAT" (CHAT_ID, USER_ID) VALUES ('1', '4');
+INSERT INTO "COURSE_4"."USER_HAVE_CHAT" (CHAT_ID, USER_ID) VALUES ('2', '1');
+INSERT INTO "COURSE_4"."USER_HAVE_CHAT" (CHAT_ID, USER_ID) VALUES ('3', '1');
+INSERT INTO "COURSE_4"."USER_HAVE_CHAT" (CHAT_ID, USER_ID) VALUES ('4', '1');
 
 
-
-Insert INTO "User"(user_id, user_first_name, user_second_name, user_password, user_email) 
- VALUES (User_seq.nextval,
-         'Artem',
-         'Usenko',
-         'Pass1',
-         'usenko@gmail.com');
-
-Insert INTO  "User"(user_id, user_first_name, user_second_name, user_password, user_email) 
- VALUES (User_seq.nextval,
-         'Artem',
-         'Usenko',
-         'Pass2',
-         'usenko1@gmail.com');
-
-Insert INTO  "User"(user_id, user_first_name, user_second_name, user_password, user_email) 
- VALUES (User_seq.nextval,
-         'Artem',
-         'Usenko',
-         'Pass3',
-         'usenko2@gmail.com');
-         
-Insert INTO  "User"(user_id, user_first_name, user_second_name, user_password, user_email) 
- VALUES (User_seq.nextval,
-         'Artem',
-         'Usenko',
-         'Pass4',
-         'usenk3@gmail.com');
-
-
-Insert INTO  UserSettings(user_settings_id, user_id, user_settings_position_on_job, user_settings_information) 
- VALUES (UserSettings_seq.nextval,
-         (Select "User".user_id from "User" where "User".USER_EMAIL = 'usenko@gmail.com'),
-         'student',
-         'age 20');
-
-Insert INTO  UserSettings(user_settings_id, user_id, user_settings_position_on_job, user_settings_information) 
- VALUES (UserSettings_seq.nextval,
-         (Select "User".user_id from "User" where "User".USER_EMAIL = 'usenko1@gmail.com'),
-         'student',
-         'age 20');
-
-Insert INTO  UserSettings(user_settings_id, user_id, user_settings_position_on_job, user_settings_information) 
- VALUES (UserSettings_seq.nextval,
-         (Select "User".user_id from "User" where "User".USER_EMAIL = 'usenko2@gmail.com'),
-         'student',
-         'age 20');
-
-Insert INTO  UserSettings(user_settings_id, user_id, user_settings_position_on_job, user_settings_information) 
- VALUES (UserSettings_seq.nextval,
-         (Select "User".user_id from "User" where "User".USER_EMAIL = 'usenko3@gmail.com'),
-         'student',
-         'age 20');
+INSERT INTO "COURSE_4"."USERSETTINGS" (USER_SETTINGS_ID, USER_ID, USER_SETTINGS_NOTIFICATION, USER_SETTINGS_POSITION_ON_JOB, USER_SETTINGS_INFORMATION) VALUES ('1', '1', 'all', 'junior developer', 'age 20');
+INSERT INTO "COURSE_4"."USERSETTINGS" (USER_SETTINGS_ID, USER_ID, USER_SETTINGS_NOTIFICATION, USER_SETTINGS_POSITION_ON_JOB, USER_SETTINGS_INFORMATION) VALUES ('2', '2', 'all', 'junior developer', 'age 20');
+INSERT INTO "COURSE_4"."USERSETTINGS" (USER_SETTINGS_ID, USER_ID, USER_SETTINGS_NOTIFICATION, USER_SETTINGS_POSITION_ON_JOB, USER_SETTINGS_INFORMATION) VALUES ('3', '3', 'all', 'junior developer', 'age 20');
+INSERT INTO "COURSE_4"."USERSETTINGS" (USER_SETTINGS_ID, USER_ID, USER_SETTINGS_NOTIFICATION, USER_SETTINGS_POSITION_ON_JOB, USER_SETTINGS_INFORMATION) VALUES ('4', '4', 'all', 'junior developer', 'age 20');
