@@ -74,10 +74,30 @@ CREATE OR REPLACE PACKAGE user_package IS
         user_id   IN        "User".user_id%TYPE
     );
 
+    PROCEDURE user_add_chat (
+        chat_id   chat.chat_id%TYPE,
+        user_id   "User".user_ud%TYPE
+    );
+
 END user_package;
 /
 
 CREATE OR REPLACE PACKAGE BODY user_package IS
+
+    PROCEDURE user_add_chat (
+        chat_id   chat.chat_id%TYPE,
+        user_id   "User".user_ud%TYPE
+    ) IS
+    BEGIN
+        INSERT INTO user_chat_admin (
+            chat_id,
+            user_id
+        ) VALUES (
+            chat_id,
+            user_id
+        );
+
+    END user_add_chat;
 
     FUNCTION get_user (
         userid   IN       "User".user_id%TYPE

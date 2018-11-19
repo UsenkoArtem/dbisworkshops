@@ -26,11 +26,11 @@ CREATE OR REPLACE PACKAGE chat_package IS
     );
     TYPE tblgetchatsettings IS
         TABLE OF chat_settings_row;
-        
-     FUNCTION get_chat_settings (
+    FUNCTION get_chat_settings (
         chat_id   IN        "CHAT".chat_id%TYPE
     ) RETURN tblgetchatsettings
-        PIPELINED;    
+        PIPELINED;
+
 END chat_package;
 /
 
@@ -68,6 +68,14 @@ CREATE OR REPLACE PACKAGE BODY chat_package IS
         ) VALUES (
             chat_id,
             chat_name
+        );
+
+        INSERT INTO user_have_chat (
+            chat_id,
+            user_id
+        ) VALUES (
+            chat_id,
+            user_id
         );
 
         COMMIT;
@@ -108,8 +116,7 @@ CREATE OR REPLACE PACKAGE BODY chat_package IS
             RAISE value_error;
     END chat_delete;
 
-
-        FUNCTION get_chat_settings (
+    FUNCTION get_chat_settings (
         chat_id   IN        "CHAT".chat_id%TYPE
     ) RETURN tblgetchatsettings
         PIPELINED
