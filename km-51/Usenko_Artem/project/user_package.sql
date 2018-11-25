@@ -35,6 +35,9 @@ CREATE OR REPLACE PACKAGE user_package IS
     ) RETURN tblgetusers
         PIPELINED;
 
+    FUNCTION get_users RETURN tblgetusers
+        PIPELINED;
+
     FUNCTION adduser (
         userfirstname    IN               "User".user_first_name%TYPE,
         usersecondname   IN               "User".user_second_name%TYPE,
@@ -76,17 +79,43 @@ CREATE OR REPLACE PACKAGE user_package IS
 
     PROCEDURE user_add_chat (
         chat_id   chat.chat_id%TYPE,
-        user_id   "User".user_ud%TYPE
+        user_id   "User".user_id%TYPE
     );
+
+    FUNCTION login_user (
+        useremail      "User".user_email%TYPE,
+        userpassword   "User".user_password%TYPE
+    ) RETURN NUMBER;
 
 END user_package;
 /
 
 CREATE OR REPLACE PACKAGE BODY user_package IS
 
+    FUNCTION login_user (
+        useremail      "User".user_email%TYPE,
+        userpassword   "User".user_password%TYPE
+    ) RETURN NUMBER IS
+        count_user   NUMBER;
+    BEGIN
+        SELECT
+            COUNT(*)
+        INTO count_user
+        FROM
+            "User"
+        WHERE
+            "User".user_email = useremail
+            AND "User".user_password = userpassword;
+
+        IF count_user = 1 THEN
+            return(0);
+        END IF;
+        return(-1);
+    END login_user;
+
     PROCEDURE user_add_chat (
         chat_id   chat.chat_id%TYPE,
-        user_id   "User".user_ud%TYPE
+        user_id   "User".user_id%TYPE
     ) IS
     BEGIN
         INSERT INTO user_chat_admin (
@@ -98,6 +127,20 @@ CREATE OR REPLACE PACKAGE BODY user_package IS
         );
 
     END user_add_chat;
+
+    FUNCTION get_users RETURN tblgetusers
+        PIPELINED
+    IS
+    BEGIN
+        FOR curr IN (
+            SELECT DISTINCT
+                *
+            FROM
+                "User"
+        ) LOOP
+            PIPE ROW ( curr );
+        END LOOP;
+    END get_users;
 
     FUNCTION get_user (
         userid   IN       "User".user_id%TYPE

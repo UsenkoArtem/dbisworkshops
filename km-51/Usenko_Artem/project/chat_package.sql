@@ -11,12 +11,12 @@ CREATE OR REPLACE PACKAGE chat_package IS
     );
 
     PROCEDURE chat_update_name (
-        chat_id         IN              "CHAT".chat_id%TYPE,
+        chatid          IN              "CHAT".chat_id%TYPE,
         new_chat_name   IN              "CHAT".chat_name%TYPE
     );
 
     PROCEDURE chat_delete (
-        chat_id   IN        "CHAT".chat_id%TYPE
+        chatid   IN       "CHAT".chat_id%TYPE
     );
 
     TYPE chat_settings_row IS RECORD (
@@ -82,7 +82,7 @@ CREATE OR REPLACE PACKAGE BODY chat_package IS
     END add_chat_to_table;
 
     PROCEDURE chat_update_name (
-        chat_id         IN              "CHAT".chat_id%TYPE,
+        chatid          IN              "CHAT".chat_id%TYPE,
         new_chat_name   IN              "CHAT".chat_name%TYPE
     ) IS
         PRAGMA autonomous_transaction;
@@ -91,7 +91,7 @@ CREATE OR REPLACE PACKAGE BODY chat_package IS
         SET
             chat.chat_name = new_chat_name
         WHERE
-            chat.chat_id = chat_id;
+            chat.chat_id = chatid;
 
         COMMIT;
     EXCEPTION
@@ -101,19 +101,35 @@ CREATE OR REPLACE PACKAGE BODY chat_package IS
     END chat_update_name;
 
     PROCEDURE chat_delete (
-        chat_id   IN        "CHAT".chat_id%TYPE
+        chatid   IN       "CHAT".chat_id%TYPE
     ) IS
         PRAGMA autonomous_transaction;
     BEGIN
-        DELETE FROM chat
+        DELETE FROM user_chat_admin
         WHERE
-            chat.chat_id = chat_id;
+            user_chat_admin.chat_id = chatid;
 
         COMMIT;
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            RAISE value_error;
+        DELETE FROM chatsettings
+        WHERE
+            chatsettings.chat_id = chatid;
+
+        COMMIT;
+        DELETE FROM message
+        WHERE
+            message.chat_id = chatid;
+
+        COMMIT;
+        DELETE FROM user_have_chat
+        WHERE
+            user_have_chat.chat_id = chatid;
+
+        COMMIT;
+        DELETE FROM chat
+        WHERE
+            chat.chat_id = chatid;
+
+        COMMIT;
     END chat_delete;
 
     FUNCTION get_chat_settings (
@@ -134,6 +150,6 @@ CREATE OR REPLACE PACKAGE BODY chat_package IS
         ) LOOP
             PIPE ROW ( curr );
         END LOOP;
-    END get_user_settings;
+    END get_chat_settings;
 
 END chat_package;

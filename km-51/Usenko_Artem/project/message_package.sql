@@ -31,7 +31,13 @@ CREATE OR REPLACE PACKAGE message_package IS
     );
 
     FUNCTION get_message (
-        chat_id   IN        "CHAT".chat_id%TYPE
+        chatid   IN       "CHAT".chat_id%TYPE
+    ) RETURN tblgetmessage
+        PIPELINED;
+
+    FUNCTION get_user_message_in_chat (
+        chatid   IN       "CHAT".chat_id%TYPE,
+        userid   IN       "User".user_id%TYPE
     ) RETURN tblgetmessage
         PIPELINED;
 
@@ -49,12 +55,12 @@ CREATE OR REPLACE PACKAGE BODY message_package IS
         maxid   message.chat_id%TYPE;
     BEGIN
         SELECT
-            MAX(message.chat_id)
+            MAX(message.message_id)
         INTO maxid
         FROM
             message;
 
-        add_message_to_table(maxid + 1, chat_name, user_id);
+        add_message_to_table(maxid + 1, message_text, message_file_url, user_id, chat_id);
         return(0);
     EXCEPTION
         WHEN OTHERS THEN
@@ -136,23 +142,45 @@ CREATE OR REPLACE PACKAGE BODY message_package IS
     END message_delete;
 
     FUNCTION get_message (
-        chat_id   IN        "CHAT".chat_id%TYPE
+        chatid   IN       "CHAT".chat_id%TYPE
     ) RETURN tblgetmessage
         PIPELINED
     IS
     BEGIN
         FOR curr IN (
-            SELECT DISTINCT
+            SELECT
                 message.message_text,
                 message.message_file_url,
                 message.message_date
             FROM
                 message
             WHERE
-                message.chat_id = chat_id
+                message.chat_id = chatid
         ) LOOP
             PIPE ROW ( curr );
         END LOOP;
     END get_message;
+
+    FUNCTION get_user_message_in_chat (
+        chatid   IN       "CHAT".chat_id%TYPE,
+        userid   IN       "User".user_id%TYPE
+    ) RETURN tblgetmessage
+        PIPELINED
+    IS
+    BEGIN
+        FOR curr IN (
+            SELECT
+                message.message_text,
+                message.message_file_url,
+                message.message_date
+            FROM
+                message
+            WHERE
+                message.chat_id = chatid
+                AND message.user_id = userid
+        ) LOOP
+            PIPE ROW ( curr );
+        END LOOP;
+    END get_user_message_in_chat;
 
 END message_package;
