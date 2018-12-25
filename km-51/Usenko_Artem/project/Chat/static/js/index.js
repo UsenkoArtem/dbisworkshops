@@ -81,7 +81,8 @@ function createHtmlMessage(messageText, messageDate, fileUrl, isUserMessage, mes
     if (isUserMessage)
         userMessageDiv.innerHTML = messageHtml;
     else
-        anotherMessageDiv.innerHTML = messageHtml;
+        anotherMessageDiv.innerHTML = "<p class='col-6'>" + messageText + "</p> " +
+            "<p>" + messageDate + "</p>";
 
     div.appendChild(anotherMessageDiv);
     div.appendChild(userMessageDiv);
