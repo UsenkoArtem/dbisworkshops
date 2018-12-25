@@ -1,0 +1,132 @@
+create table CHAT
+(
+  CHAT_ID   NUMBER        not null
+    constraint PK_CHAT
+      primary key,
+  CHAT_NAME VARCHAR2(100) not null,
+  ISDELETE  TIMESTAMP(6) default null
+)
+/
+
+create table CHATSETTINGS
+(
+  CHAT_ID                        NUMBER not null
+    constraint PK_CHATSETTINGS
+      primary key
+    constraint FK_CHAT_SETTINGS
+      references CHAT,
+  CHAT_SETTINGS_INFORMATION      VARCHAR2(100),
+  CHAT_SETTINGS_ADMINISTRATOR_ID NUMBER,
+  CHAT_SETTINGS_ID               NUMBER not null
+)
+/
+
+create table "User"
+(
+  USER_ID          NUMBER       not null
+    constraint PK_USER
+      primary key,
+  USER_FIRST_NAME  VARCHAR2(40)
+    constraint USER_FIRST_NAME_CHECK
+      check (REGEXP_LIKE(user_first_name, '^[A-Z]{1,1}[a-z]{0,39}$')),
+  USER_SECOND_NAME VARCHAR2(40)
+    constraint USER_SECOND_NAME_CHECK
+      check (REGEXP_LIKE(user_second_name, '^[A-Z]{1,1}[a-z]{0,39}$')),
+  USER_PASSWORD    VARCHAR2(40),
+  USER_EMAIL       VARCHAR2(50) not null
+    constraint USER_EMAIL_UNIQUE
+      unique
+    constraint USER_EMAIL_CHECK
+      check (REGEXP_LIKE(user_email, '^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'))
+)
+/
+
+create table MESSAGE
+(
+  MESSAGE_ID   NUMBER not null
+    constraint PK_MESSAGE
+      primary key,
+  MESSAGE_DATE DATE   not null,
+  CHAT_ID      NUMBER
+    constraint FK_CHAT_MESSAGE
+      references CHAT,
+  USER_ID      NUMBER
+    constraint FK_USER_MESSAGE
+      references "User",
+  MESSAGE_TEXT VARCHAR2(255),
+  FILE_URL     VARCHAR2(255) default null,
+  ISDELETE     TIMESTAMP(6)  default null
+)
+/
+
+create index CHAT_MESSAGES_FK
+  on MESSAGE (CHAT_ID)
+/
+
+create index USER_MESSAGE_FK
+  on MESSAGE (USER_ID)
+/
+
+create table USERSETTINGS
+(
+  USER_SETTINGS_ID              NUMBER not null
+    constraint PK_USERSETTINGS
+      primary key,
+  USER_ID                       NUMBER
+    constraint FK_USERSETT_USER_SETT_USER
+      references "User",
+  USER_SETTINGS_NOTIFICATION    VARCHAR2(100),
+  USER_SETTINGS_POSITION_ON_JOB VARCHAR2(100)
+    constraint USER_SETTINGS_JOB_CHECK
+      check (REGEXP_LIKE(user_settings_position_on_job, '^[a-zA-Z ]{1,100}$')),
+  USER_SETTINGS_INFORMATION     VARCHAR2(100)
+)
+/
+
+create index USER_SETTINGS_FK
+  on USERSETTINGS (USER_ID)
+/
+
+create table USER_CHAT_ADMIN
+(
+  CHAT_ID NUMBER not null
+    constraint FK_CHAT_ADMIN
+      references CHATSETTINGS,
+  USER_ID NUMBER not null
+    constraint FK_USER_ADMIN_CHAT
+      references "User",
+  constraint PK_USER_CHAT_ADMIN
+    primary key (CHAT_ID, USER_ID)
+)
+/
+
+create index USER_CHAT_ADMIN2_FK
+  on USER_CHAT_ADMIN (USER_ID)
+/
+
+create index CHAT_ADMIN_FK
+  on USER_CHAT_ADMIN (CHAT_ID)
+/
+
+create table USER_HAVE_CHAT
+(
+  CHAT_ID  NUMBER not null
+    constraint FK_CHAT_USER
+      references CHAT,
+  USER_ID  NUMBER not null
+    constraint FK_USER_CHAT
+      references "User",
+  ISDELETE TIMESTAMP(6) default null,
+  constraint PK_USER_HAVE_CHAT
+    primary key (CHAT_ID, USER_ID)
+)
+/
+
+create index USER_HAVE_CHAT2_FK
+  on USER_HAVE_CHAT (USER_ID)
+/
+
+create index CHAT_USER_FK
+  on USER_HAVE_CHAT (CHAT_ID)
+/
+

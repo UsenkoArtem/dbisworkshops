@@ -1,0 +1,25 @@
+.user_message {
+    margin: auto;
+    background-color: aqua;
+    border-radius: 1em;
+}
+
+.user_message_file {
+    background-color: aqua;
+    border-radius: 1em;
+    cursor: pointer;
+    margin: 0.2em auto auto;
+}
+
+.another_message {
+    margin: auto;
+    background-color: #fff026;
+    border-radius: 1em;
+}
+
+.another_message_file {
+    background-color: #fff026;
+    border-radius: 1em;
+    cursor: pointer;
+    margin: 0.2em auto auto;
+}

@@ -1,0 +1,56 @@
+create or replace view MESSAGE_VIEW as
+SELECT "MESSAGE_ID","MESSAGE_DATE","CHAT_ID","USER_ID","MESSAGE_TEXT","FILE_URL","ISDELETE"
+FROM message
+/
+
+create or replace trigger MESSAGE_VIEW_DELETE
+	instead of delete
+	on MESSAGE_VIEW
+	for each row
+begin
+
+  UPDATE MESSAGE
+  SET ISDELETE = systimestamp
+  WHERE MESSAGE_ID = :deleted_row.MESSAGE_ID;
+
+END;
+/
+
+create or replace view USER_HAVE_CHAT_VIEW as
+SELECT "CHAT_ID","USER_ID","ISDELETE"
+FROM USER_HAVE_CHAT
+/
+
+create or replace trigger USER_HAVE_CHAT_VIEW_DELETE
+	instead of delete
+	on USER_HAVE_CHAT_VIEW
+	for each row
+begin
+
+  UPDATE USER_HAVE_CHAT
+  SET ISDELETE = systimestamp
+  WHERE USER_ID = :deleted_row.USER_ID
+    and CHAT_ID = :deleted_row.CHAT_ID;
+
+
+END;
+/
+
+create or replace view CHAT_VIEW as
+SELECT "CHAT_ID","CHAT_NAME","ISDELETE"
+FROM CHAT
+/
+
+create or replace trigger CHAT_VIEW_DELETE
+	instead of delete
+	on CHAT_VIEW
+	for each row
+begin
+
+  UPDATE CHAT
+  SET ISDELETE = systimestamp
+  WHERE CHAT_ID = :deleted_row.CHAT_ID;
+
+END;
+/
+

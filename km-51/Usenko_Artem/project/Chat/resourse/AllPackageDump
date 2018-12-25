@@ -1,0 +1,710 @@
+create PACKAGE chat_package IS
+
+  TYPE rowchatWithUser IS RECORD (
+    chat_name chat.chat_name%TYPE,
+    chat_id chat.chat_id%TYPE
+    );
+
+  TYPE tblchats IS
+    TABLE OF rowchatWithUser;
+
+  FUNCTION add_chat(chat_name IN "CHAT".chat_name%TYPE,
+                    userEmail IN "User".USER_EMAIL%TYPE) RETURN NUMBER;
+
+  PROCEDURE add_chat_to_table(chat_id IN "CHAT".chat_id%TYPE,
+                              chat_name IN "CHAT".chat_name%TYPE,
+                              user_id IN "User".user_id%TYPE);
+
+  PROCEDURE chat_update_name(chatid IN "CHAT".chat_id%TYPE,
+                             new_chat_name IN "CHAT".chat_name%TYPE);
+
+  PROCEDURE chat_delete(
+    chatid IN "CHAT".chat_id%TYPE
+  );
+
+  TYPE chat_settings_row IS RECORD (
+    chat_settings_administrator_id chatsettings.chat_settings_administrator_id%TYPE,
+    chat_id chatsettings.chat_id%TYPE,
+    chat_settings_information chatsettings.chat_settings_information%TYPE
+    );
+  TYPE tblgetchatsettings IS
+    TABLE OF chat_settings_row;
+
+  FUNCTION get_chat_settings(
+    chat_id IN "CHAT".chat_id%TYPE
+  ) RETURN tblgetchatsettings
+    PIPELINED;
+
+  FUNCTION get_chats_by_name(chatname in "CHAT".chat_name%TYPE)
+    RETURN tblchats PIPELINED;
+
+END chat_package;
+/
+
+create PACKAGE BODY chat_package IS
+
+  FUNCTION get_chats_by_name(chatname in "CHAT".chat_name%TYPE)
+    RETURN tblchats PIPELINED
+  is
+
+  BEGIN
+
+    FOR curr IN (
+      SELECT CHAT_VIEW.chat_name,
+             CHAT_VIEW.CHAT_ID
+      FROM CHAT_VIEW
+      WHERE CHAT_NAME = chatname
+        and CHAT_VIEW.ISDELETE is null
+      )
+      LOOP
+        PIPE ROW ( curr );
+      END LOOP;
+  END get_chats_by_name;
+
+  FUNCTION add_chat(chat_name IN "CHAT".chat_name%TYPE,
+                    userEmail IN "User".USER_EMAIL%TYPE) RETURN NUMBER IS
+    maxid chat.chat_id%TYPE;
+    userId "User".USER_ID%TYPE;
+  BEGIN
+
+    SELECT MAX(chat.chat_id) INTO maxid
+    FROM chat;
+
+    SELECT user_id INTO userId
+    FROM "User"
+    WHERE user_email = userEmail;
+
+    add_chat_to_table(maxid + 1, chat_name, userId);
+    return (0);
+    EXCEPTION
+    WHEN OTHERS
+    THEN
+      return (-1);
+  END add_chat;
+
+  PROCEDURE add_chat_to_table(chat_id IN "CHAT".chat_id%TYPE,
+                              chat_name IN "CHAT".chat_name%TYPE,
+                              user_id IN "User".user_id%TYPE) IS
+    PRAGMA autonomous_transaction;
+  BEGIN
+    INSERT INTO chat (chat_id,
+                      chat_name)
+    VALUES (chat_id,
+            chat_name);
+
+    INSERT INTO user_have_chat (chat_id,
+                                user_id)
+    VALUES (chat_id,
+            user_id);
+
+    COMMIT;
+  END add_chat_to_table;
+
+  PROCEDURE chat_update_name(chatid IN "CHAT".chat_id%TYPE,
+                             new_chat_name IN "CHAT".chat_name%TYPE) IS
+    PRAGMA autonomous_transaction;
+  BEGIN
+    UPDATE chat
+    SET chat.chat_name = new_chat_name
+    WHERE chat.chat_id = chatid;
+
+    COMMIT;
+    EXCEPTION
+    WHEN OTHERS
+    THEN
+      ROLLBACK;
+      RAISE value_error;
+  END chat_update_name;
+
+  PROCEDURE chat_delete(
+    chatid IN "CHAT".chat_id%TYPE
+  ) IS
+  BEGIN
+    DELETE
+    FROM user_chat_admin
+    WHERE user_chat_admin.chat_id = chatid;
+
+    DELETE
+    FROM chatsettings
+    WHERE chatsettings.chat_id = chatid;
+
+    DELETE
+    FROM MESSAGE_VIEW
+    WHERE MESSAGE_VIEW.chat_id = chatid;
+
+    DELETE
+    FROM USER_HAVE_CHAT_VIEW
+    WHERE USER_HAVE_CHAT_VIEW.chat_id = chatid;
+
+    DELETE
+    FROM CHAT_VIEW
+    WHERE CHAT_VIEW.chat_id = chatid;
+
+  END chat_delete;
+
+  FUNCTION get_chat_settings(
+    chat_id IN "CHAT".chat_id%TYPE
+  ) RETURN tblgetchatsettings
+    PIPELINED
+  IS
+  BEGIN
+    FOR curr IN (
+      SELECT DISTINCT chat_settings_administrator_id,
+                      chat_id,
+                      chat_settings_information
+      FROM chatsettings
+      WHERE chatsettings.chat_id = chat_id
+      )
+      LOOP
+        PIPE ROW ( curr );
+      END LOOP;
+  END get_chat_settings;
+
+END chat_package;
+/
+
+create PACKAGE user_package IS
+  TYPE rowchat IS RECORD (
+    chat_name chat.chat_name%TYPE,
+    chat_id chat.chat_id%TYPE
+    );
+  TYPE tblgetchats IS
+    TABLE OF rowchat;
+  TYPE user_settings_row IS RECORD (
+    user_settings_notification usersettings.user_settings_notification%TYPE,
+    user_settings_information usersettings.user_settings_information%TYPE,
+    user_settings_position_on_job usersettings.user_settings_position_on_job%TYPE
+    );
+  TYPE tblgetusersettings IS
+    TABLE OF user_settings_row;
+  TYPE user_row IS RECORD (
+    user_id "User".user_id%TYPE,
+    userfirstname "User".user_first_name%TYPE,
+    usersecondname "User".user_second_name%TYPE,
+    pass "User".user_password%TYPE,
+    email "User".user_email%TYPE
+    );
+  TYPE tblgetusers IS
+    TABLE OF user_row;
+  FUNCTION get_user_chats(useremail IN "User".user_email%TYPE) RETURN tblgetchats
+    PIPELINED;
+
+  FUNCTION get_user_settings(
+    userid IN "User".user_id%TYPE
+  ) RETURN tblgetusersettings
+    PIPELINED;
+
+  FUNCTION get_user(
+    userid IN "User".user_id%TYPE
+  ) RETURN tblgetusers
+    PIPELINED;
+
+  FUNCTION get_users RETURN tblgetusers
+    PIPELINED;
+
+  FUNCTION adduser(userfirstname IN "User".user_first_name%TYPE,
+                   usersecondname IN "User".user_second_name%TYPE,
+                   pass IN "User".user_password%TYPE,
+                   email IN "User".user_email%TYPE) RETURN NUMBER;
+
+  PROCEDURE addusertodatabase(user_id IN "User".user_id%TYPE,
+                              userfirstname IN "User".user_first_name%TYPE,
+                              usersecondname IN "User".user_second_name%TYPE,
+                              pass IN "User".user_password%TYPE,
+                              email IN "User".user_email%TYPE);
+
+  PROCEDURE user_update_first_name(userId IN "User".user_id%TYPE,
+                                   new_first_name IN "User".user_first_name%TYPE);
+
+  PROCEDURE user_update_second_name(userId IN "User".user_id%TYPE,
+                                    new_second_name IN "User".user_second_name%TYPE);
+
+  PROCEDURE user_update_password(userId IN "User".user_id%TYPE,
+                                 new_password IN "User".user_password%TYPE);
+
+  PROCEDURE user_update_email(userId IN "User".user_id%TYPE,
+                              new_email IN "User".user_email%TYPE);
+
+  PROCEDURE user_delete(
+    userId IN "User".user_id%TYPE
+  );
+
+  PROCEDURE user_add_chat(chatid chat.chat_id%TYPE,
+                          useremail "User".USER_EMAIL%TYPE);
+
+  PROCEDURE user_leave_chat(chatid chat.chat_id%TYPE,
+                            useremail "User".USER_EMAIL%TYPE);
+
+  FUNCTION login_user(useremail "User".user_email%TYPE,
+                      userpassword "User".user_password%TYPE) RETURN NUMBER;
+
+END user_package;
+/
+
+create PACKAGE BODY user_package IS
+
+  FUNCTION login_user(useremail "User".user_email%TYPE,
+                      userpassword "User".user_password%TYPE) RETURN NUMBER IS
+    count_user NUMBER;
+  BEGIN
+    SELECT COUNT(*) INTO count_user
+    FROM "User"
+    WHERE "User".user_email = useremail
+      AND "User".user_password = userpassword;
+
+    IF count_user = 1 THEN
+      return (0);
+    END IF;
+    return (-1);
+  END login_user;
+
+  PROCEDURE user_add_chat(chatid chat.chat_id%TYPE,
+                          useremail "User".USER_EMAIL%TYPE) IS
+    userid "User".user_id%Type;
+    countChats NUMBER;
+    userAlreadyDeleteChat NUMBER;
+  BEGIN
+
+    Select user_id into userid
+    From "User"
+    Where user_email = useremail;
+
+    SELECT count(*) into countChats
+    FROM USER_HAVE_CHAT
+    where USER_HAVE_CHAT.CHAT_ID = chatid
+      AND USER_HAVE_CHAT.USER_ID = userid;
+
+    SELECT count(*) into userAlreadyDeleteChat
+    FROM USER_HAVE_CHAT
+    where USER_HAVE_CHAT.CHAT_ID = chatid
+      AND USER_HAVE_CHAT.USER_ID = userid
+      AND USER_HAVE_CHAT.ISDELETE is not null;
+
+    if (countChats = 0) THEN
+
+      INSERT INTO USER_HAVE_CHAT (chat_id, user_id)
+      VALUES (chatid,
+              userid);
+
+    elsif (userAlreadyDeleteChat = 1) THEN
+
+      UPDATE USER_HAVE_CHAT
+      SET USER_HAVE_CHAT.ISDELETE = null
+      where USER_HAVE_CHAT.CHAT_ID = chatid
+        AND USER_HAVE_CHAT.USER_ID = userid;
+
+    END IF;
+  END user_add_chat;
+
+  PROCEDURE user_leave_chat(chatid chat.chat_id%TYPE,
+                            useremail "User".USER_EMAIL%TYPE) is
+    userid "User".user_id%Type;
+    countChats NUMBER;
+  BEGIN
+
+    Select user_id into userid
+    From "User"
+    Where user_email = useremail;
+
+    DELETE USER_HAVE_CHAT_VIEW
+    where USER_HAVE_CHAT_VIEW.CHAT_ID = chatid
+      AND USER_HAVE_CHAT_VIEW.USER_ID = userid;
+
+  END user_leave_chat;
+
+  FUNCTION
+    get_users
+    RETURN tblgetusers
+    PIPELINED
+  IS
+  BEGIN
+    FOR curr IN (
+      SELECT DISTINCT *
+      FROM "User"
+      )
+      LOOP
+        PIPE ROW ( curr );
+      END LOOP;
+  END get_users;
+
+  FUNCTION
+    get_user(
+    userid IN "User".user_id %TYPE
+  )
+    RETURN tblgetusers
+    PIPELINED
+  IS
+  BEGIN
+    FOR curr IN (
+      SELECT DISTINCT *
+      FROM "User"
+      WHERE "User".user_id = userid
+      )
+      LOOP
+        PIPE ROW ( curr );
+      END LOOP;
+  END get_user;
+
+  FUNCTION
+    get_user_settings(
+    userid IN "User".user_id %TYPE
+  )
+    RETURN tblgetusersettings
+    PIPELINED
+  IS
+  BEGIN
+    FOR curr IN (
+      SELECT DISTINCT user_settings_notification,
+                      user_settings_information,
+                      user_settings_position_on_job
+      FROM usersettings
+      WHERE usersettings.user_id = userid
+      )
+      LOOP
+        PIPE ROW ( curr );
+      END LOOP;
+  END get_user_settings;
+
+  FUNCTION
+    get_user_chats(
+    useremail IN "User".user_email %TYPE
+  )
+    RETURN tblgetchats
+    PIPELINED
+  IS
+    userid "User".user_id%Type;
+  BEGIN
+
+    Select user_id into userid
+    From "User"
+    Where user_email = useremail;
+
+    FOR curr IN (
+      SELECT CHAT_VIEW.chat_name,
+             CHAT_VIEW.chat_id
+      FROM CHAT_VIEW
+             INNER JOIN USER_HAVE_CHAT_VIEW ON USER_HAVE_CHAT_VIEW.chat_id = CHAT_VIEW.chat_id
+        AND USER_HAVE_CHAT_VIEW.user_id = userid
+        AND CHAT_VIEW.ISDELETE is null
+        AND USER_HAVE_CHAT_VIEW.ISDELETE is null
+      )
+      LOOP
+        PIPE ROW ( curr );
+      END LOOP;
+  END get_user_chats;
+
+  FUNCTION
+    adduser(userfirstname IN "User".user_first_name %TYPE,
+            usersecondname IN "User".user_second_name %TYPE,
+            pass IN "User".user_password %TYPE,
+            email IN "User".user_email %TYPE)
+    RETURN NUMBER IS
+    maxid "User".user_id%TYPE;
+  BEGIN
+    SELECT MAX("User".user_id) INTO maxid
+    FROM "User";
+
+    addusertodatabase(maxid + 1, userfirstname, usersecondname, pass, email);
+    return (0);
+    EXCEPTION
+    WHEN OTHERS
+    THEN
+      return (-1);
+  END adduser;
+
+  PROCEDURE
+    addusertodatabase(user_id IN "User".user_id %TYPE,
+                      userfirstname IN "User".user_first_name %TYPE,
+                      usersecondname IN "User".user_second_name %TYPE,
+                      pass IN "User".user_password %TYPE,
+                      email IN "User".user_email %TYPE) IS
+    PRAGMA autonomous_transaction;
+  BEGIN
+    INSERT INTO "User" (user_id,
+                        user_first_name,
+                        user_second_name,
+                        user_password,
+                        user_email)
+    VALUES (user_id,
+            userfirstname,
+            usersecondname,
+            pass,
+            email);
+
+    COMMIT;
+  END addusertodatabase;
+
+  PROCEDURE
+    user_update_first_name(userId IN "User".user_id %TYPE,
+                           new_first_name IN "User".user_first_name %TYPE) IS
+    PRAGMA autonomous_transaction;
+  BEGIN
+    UPDATE "User"
+    SET "User".user_first_name = new_first_name
+    WHERE "User".user_id = userId;
+
+    COMMIT;
+    EXCEPTION
+    WHEN OTHERS
+    THEN
+      ROLLBACK;
+      RAISE value_error;
+  END user_update_first_name;
+
+  PROCEDURE
+    user_update_second_name(userId IN "User".user_id %TYPE,
+                            new_second_name IN "User".user_second_name %TYPE) IS
+    PRAGMA autonomous_transaction;
+  BEGIN
+    UPDATE "User"
+    SET "User".user_second_name = new_second_name
+    WHERE "User".user_id = userId;
+
+    COMMIT;
+    EXCEPTION
+    WHEN OTHERS
+    THEN
+      ROLLBACK;
+      RAISE value_error;
+  END user_update_second_name;
+
+  PROCEDURE
+    user_update_password(userId IN "User".user_id %TYPE,
+                         new_password IN "User".user_password %TYPE) IS
+    PRAGMA autonomous_transaction;
+  BEGIN
+    UPDATE "User"
+    SET "User".user_password = new_password
+    WHERE "User".user_id = userId;
+
+    COMMIT;
+    EXCEPTION
+    WHEN OTHERS
+    THEN
+      ROLLBACK;
+      RAISE value_error;
+  END user_update_password;
+
+  PROCEDURE
+    user_update_email(userId IN "User".user_id %TYPE,
+                      new_email IN "User".user_email %TYPE) IS
+    PRAGMA autonomous_transaction;
+  BEGIN
+    UPDATE "User"
+    SET "User".user_email = new_email
+    WHERE "User".user_id = userId;
+
+    COMMIT;
+    EXCEPTION
+    WHEN OTHERS
+    THEN
+      ROLLBACK;
+      RAISE value_error;
+  END user_update_email;
+
+  PROCEDURE
+    user_delete(
+    userid IN "User".user_id %TYPE
+  ) IS
+    PRAGMA autonomous_transaction;
+  BEGIN
+    DELETE
+    FROM "User"
+    WHERE "User".user_id = userid;
+
+    COMMIT;
+    EXCEPTION
+    WHEN OTHERS
+    THEN
+      ROLLBACK;
+      RAISE value_error;
+  END user_delete;
+
+END user_package;
+/
+
+create PACKAGE message_package IS
+  TYPE message_row IS RECORD (
+    message_text message.message_text%TYPE,
+    message_file_url message.file_url%TYPE,
+    message_date message.message_date%TYPE,
+    isUserMessage NUMBER(1),
+    message_id message.message_id%TYPE
+    );
+
+  TYPE tblgetmessage IS
+    TABLE OF message_row;
+
+  FUNCTION add_message(message_text IN message.message_text%TYPE,
+                       message_file_url IN message.file_url%TYPE,
+                       useremail IN "User".USER_EMAIL%TYPE,
+                       chat_id IN "CHAT".chat_id%TYPE) RETURN NUMBER;
+
+  PROCEDURE add_message_to_table(message_id IN message.message_id%TYPE,
+                                 message_text IN message.message_text%TYPE,
+                                 message_file_url IN message.file_url%TYPE,
+                                 user_id IN "User".user_id%TYPE,
+                                 chat_id IN "CHAT".chat_id%TYPE);
+
+  PROCEDURE message_update_text(messageid IN message.message_id%TYPE,
+                                messagetext IN message.message_text%TYPE);
+
+  PROCEDURE message_delete(
+    messageid IN message.message_id%TYPE
+  );
+
+  FUNCTION get_message(chatid IN "CHAT".chat_id%TYPE,
+                       useremail IN "User".user_email%TYPE) RETURN tblgetmessage
+    PIPELINED;
+
+  FUNCTION get_user_message_in_chat(chatid IN "CHAT".chat_id%TYPE,
+                                    userid IN "User".user_id%TYPE) RETURN tblgetmessage
+    PIPELINED;
+
+END message_package;
+/
+
+create PACKAGE BODY message_package IS
+
+  FUNCTION add_message(message_text IN message.message_text%TYPE,
+                       message_file_url IN message.file_url%TYPE,
+                       useremail IN "User".USER_EMAIL%TYPE,
+                       chat_id IN "CHAT".chat_id%TYPE) RETURN NUMBER IS
+    maxid message.chat_id%TYPE;
+    userid message.user_id%TYPE;
+  BEGIN
+    SELECT MAX(message.message_id) INTO maxid
+    FROM message;
+
+    Select "User".USER_ID into userid
+    from "User"
+    where "User".USER_EMAIL = useremail;
+
+    add_message_to_table(maxid + 1, message_text, message_file_url, userid, chat_id);
+    return (0);
+    EXCEPTION
+    WHEN OTHERS
+    THEN
+      return (-1);
+  END add_message;
+
+  PROCEDURE add_message_to_table(message_id IN message.message_id%TYPE,
+                                 message_text IN message.message_text%TYPE,
+                                 message_file_url IN message.file_url%TYPE,
+                                 user_id IN "User".user_id%TYPE,
+                                 chat_id IN "CHAT".chat_id%TYPE) IS
+    PRAGMA autonomous_transaction;
+  BEGIN
+    INSERT INTO message (message_id,
+                         message_text,
+                         message_date,
+                         chat_id,
+                         user_id,
+                         file_url)
+    VALUES (message_id,
+            message_text,
+            (
+              SELECT systimestamp
+              FROM dual
+            ),
+            chat_id,
+            user_id,
+            message_file_url);
+
+    COMMIT;
+  END add_message_to_table;
+
+  PROCEDURE message_update_text(messageid IN message.message_id%TYPE,
+                                messagetext IN message.message_text%TYPE) IS
+    PRAGMA autonomous_transaction;
+  BEGIN
+    UPDATE message
+    SET message.message_text = messagetext,
+        message.message_date = (
+          SELECT systimestamp
+          FROM dual
+        )
+    WHERE message.message_id = messageid;
+
+    COMMIT;
+    EXCEPTION
+    WHEN OTHERS
+    THEN
+      ROLLBACK;
+      RAISE value_error;
+  END message_update_text;
+
+  PROCEDURE message_delete(
+    messageid IN message.message_id%TYPE
+  ) IS
+  BEGIN
+
+    DELETE
+    FROM MESSAGE_VIEW
+    WHERE MESSAGE_VIEW.message_id = messageid;
+
+  END message_delete;
+
+  FUNCTION get_message(chatid IN "CHAT".chat_id%TYPE,
+                       useremail IN "User".user_email%TYPE) RETURN tblgetmessage
+    PIPELINED
+  IS
+    userid "User".user_id%TYPE;
+  BEGIN
+    Select "User".USER_ID into userid
+    from "User"
+    where "User".USER_EMAIL = useremail;
+
+    FOR curr IN (
+      SELECT message.message_text,
+             message.file_url,
+             message.message_date,
+             case
+               when message.USER_ID = userid
+                 then
+                 1
+               else
+                 0
+               end as
+               isUserMessage,
+             MESSAGE_ID
+      FROM message
+      WHERE message.chat_id = chatid
+        and MESSAGE.ISDELETE is null
+      order by MESSAGE_ID
+      )
+      LOOP
+        PIPE ROW ( curr );
+      END LOOP;
+  END get_message;
+
+  FUNCTION get_user_message_in_chat(chatid IN "CHAT".chat_id%TYPE,
+                                    userid IN "User".user_id%TYPE) RETURN tblgetmessage
+    PIPELINED
+  IS
+  BEGIN
+    FOR curr IN (
+      SELECT message.message_text,
+             message.file_url,
+             message.message_date,
+             case
+               when message.USER_ID = userid
+                 then
+                 1
+               else
+                 0
+               end as
+               isUserMessage,
+             MESSAGE_ID
+      FROM message
+      WHERE message.chat_id = chatid
+        and MESSAGE.ISDELETE is null
+      )
+      LOOP
+        PIPE ROW ( curr );
+      END LOOP;
+  END get_user_message_in_chat;
+
+END message_package;
+/
+
