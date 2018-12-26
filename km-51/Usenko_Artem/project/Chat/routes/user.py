@@ -1,12 +1,13 @@
 import os
 
-from flask import Blueprint, redirect, session, request, send_from_directory
+from flask import Blueprint, redirect, session, request, send_from_directory, render_template
 from flask.json import jsonify
 
 from DB.Service import UserGetChats, AddNewChat, GetChatMessage, AddNewMessage, GetMessageUri, GetChatsByName, AddChat, \
-    UpdateMessage, DeleteMessage, LeaveFromChat
-from helpers.helpers import isUserInAlreadyLogin
+    UpdateMessage, DeleteMessage, LeaveFromChat, UpdateFirstName, UpdateSecondName, UpdateEmail, UpdatePassword
+from helpers.helpers import isUserInAlreadyLogin, createResponse
 from wtf.form.message import Message
+from wtf.form.user import UserForm
 
 user_api = Blueprint('user_api', __name__)
 fileStorage = "D:\Chat"
@@ -88,17 +89,51 @@ def add_chat(chatid):
 
 @user_api.route("/message/update/<int:messageid>/<messageText>")
 def updateMessage(messageid, messageText):
-    UpdateMessage(messageid, messageText)
+    if not isUserInAlreadyLogin(request):
+        return redirect('/login')
+    else:
+        UpdateMessage(messageid, messageText)
     return redirect('/')
 
 
 @user_api.route("/message/delete/<int:messageid>")
 def deleteMessage(messageid):
-    DeleteMessage(messageid)
+    if not isUserInAlreadyLogin(request):
+        return redirect('/login')
+    else:
+        DeleteMessage(messageid)
     return redirect('/')
 
 
 @user_api.route("/user/leave/<int:chatid>")
 def leaveFromChat(chatid):
-    LeaveFromChat(chatid, session.get("email"))
+    if not isUserInAlreadyLogin(request):
+        return redirect('/login')
+    else:
+        LeaveFromChat(chatid, session.get("email"))
     return redirect('/')
+
+
+@user_api.route("/user/update", methods=["POST"])
+def updateUser():
+    if not isUserInAlreadyLogin(request):
+        return redirect('/login')
+    else:
+        form = Message()
+        userForm = UserForm()
+        if not userForm.validate_on_submit():
+            return render_template('Index.html', form=form, userForm=userForm, errors="true")
+        else:
+
+            email = userForm.email.data
+            password = userForm.password.data
+            firstname = userForm.firstName.data
+            secondname = userForm.secondName.data
+            oldNewEmail = session.get("email")
+
+            UpdateFirstName(firstname, oldNewEmail)
+            UpdateSecondName(secondname, oldNewEmail)
+            UpdatePassword(password, oldNewEmail)
+            UpdateEmail(email, oldNewEmail)
+
+        return createResponse(request)

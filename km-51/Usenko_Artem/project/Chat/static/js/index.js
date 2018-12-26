@@ -2,12 +2,17 @@ window.onload = function () {
 
     const input = document.getElementById("search");
     input.addEventListener("keyup", function (event) {
-
         event.preventDefault();
         if (event.keyCode === 13) {
             showSearchResult(input.value)
         }
     });
+
+    const errors = document.getElementById("haveErrors").value;
+    if (errors === true)
+    {
+         $('#updateUserProfileModal').modal('show');
+    }
 
     fetch('/user/chats')
         .then(
@@ -27,6 +32,10 @@ window.onload = function () {
             console.log('Fetch Error :-S', err);
         });
 };
+
+function updateProfile() {
+     $('#updateUserProfileModal').modal('show');
+}
 
 function createChat() {
     const chatName = document.getElementById("chatName").value;

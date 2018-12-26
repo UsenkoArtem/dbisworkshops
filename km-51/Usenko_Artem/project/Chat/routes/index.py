@@ -1,12 +1,10 @@
 from datetime import datetime
 
-import numpy as np
 import plotly as plotly
 import plotly.graph_objs as go
+from flask import render_template, request, make_response, session, redirect, Blueprint, json
 
-from flask import render_template, request, make_response, session, redirect, url_for, Blueprint, json
-
-from DB.Service import IsUserInDB, AddNewUser, UserGetChats, GetMessageActivity, GetUserInChatsCount
+from DB.Service import IsUserInDB, AddNewUser, GetMessageActivity, GetUserInChatsCount
 from helpers.helpers import isUserInAlreadyLogin, createResponse
 from wtf.form.login import LoginForm
 from wtf.form.message import Message
@@ -22,7 +20,8 @@ def index():
         return redirect('/login')
     else:
         form = Message()
-        return render_template('index.html', form=form)
+        userForm = UserForm()
+        return render_template('index.html', form=form, userForm=userForm)
 
 
 @index_api.route("/auth", methods=["GET", "POST"])

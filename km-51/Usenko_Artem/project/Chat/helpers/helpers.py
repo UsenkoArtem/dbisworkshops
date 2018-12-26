@@ -19,4 +19,5 @@ def createResponse(request):
     response = make_response(redirect('/'))
     expire_date = datetime.datetime.now() + datetime.timedelta(days=90)
     response.set_cookie("email", request.form["email"], expires=expire_date)
+    session['email'] = request.form["email"]
     return response

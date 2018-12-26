@@ -146,3 +146,39 @@ def LeaveFromChat(chatId, userEmail):
     cursor.close()
     connect.commit()
     connect.close()
+
+
+def UpdateFirstName(newUserFirstName, userEmail):
+    connect = Oracle().connect('Course_4', 'art', 'DESKTOP-5UL0E3G', 1521, 'XE')
+    cursor = connect.cursor()
+    cursor.callproc('user_package.user_update_first_name', [str(userEmail), str(newUserFirstName)])
+    cursor.close()
+    connect.commit()
+    connect.close()
+
+
+def UpdateSecondName(newUserSecondName, userEmail):
+    connect = Oracle().connect('Course_4', 'art', 'DESKTOP-5UL0E3G', 1521, 'XE')
+    cursor = connect.cursor()
+    cursor.callproc('user_package.user_update_second_name', [str(userEmail), str(newUserSecondName)])
+    cursor.close()
+    connect.commit()
+    connect.close()
+
+
+def UpdateEmail(newUserEmail, userEmail):
+    connect = Oracle().connect('Course_4', 'art', 'DESKTOP-5UL0E3G', 1521, 'XE')
+    cursor = connect.cursor()
+    cursor.callproc('user_package.user_update_email', [str(userEmail), str(newUserEmail)])
+    cursor.close()
+    connect.commit()
+    connect.close()
+
+
+def UpdatePassword(newPassword, userEmail):
+    connect = Oracle().connect('Course_4', 'art', 'DESKTOP-5UL0E3G', 1521, 'XE')
+    cursor = connect.cursor()
+    cursor.callproc('user_package.user_update_password', [str(userEmail), str(newPassword)])
+    cursor.close()
+    connect.commit()
+    connect.close()

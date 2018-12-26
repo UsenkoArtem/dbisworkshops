@@ -6,12 +6,14 @@ from wtforms import validators
 class UserForm(Form):
     firstName = StringField("Name: ", [
         validators.DataRequired("Please enter your name."),
-        validators.Length(3, 20, "Name should be from 3 to 40 symbols")
+        validators.Length(3, 20, "Name should be from 3 to 40 symbols"),
+        validators.regexp('^[A-Z][a-z]{0,39}$')
     ])
 
     secondName = StringField("Name: ", [
         validators.DataRequired("Please enter your suriname."),
-        validators.Length(3, 20, "Name should be from 3 to 40 symbols")
+        validators.Length(3, 20, "Name should be from 3 to 40 symbols"),
+        validators.regexp('^[A-Z][a-z]{0,39}$')
     ])
 
     email = StringField("Email: ", [
